@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music for Airports 2/1 - Tone.js 再現</title>
+    <script src="https://unpkg.com/tone@14.7.77/build/Tone.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #000000;
+            color: #ffffff;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(255, 255, 255, 0.1);
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+        h1 {
+            color: #ffffff;
+            margin-bottom: 25px;
+            font-size: 1.8em;
+        }
+        p {
+            font-size: 0.95em;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #000000;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .control-group label {
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            color: #ffffff;
+        }
+        .control-group input[type="range"] {
+            width: 80%;
+            cursor: pointer;
+            background-color: rgba(40, 40, 40, 0.8);
+            border-radius: 4px;
+            height: 6px;
+        }
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .control-group input[type="range"]::-moz-range-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .control-group output {
+            font-size: 0.85em;
+            margin-top: 5px;
+            color: #ffffff;
+        }
+        .info-box {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #000000;
+            border-left: 4px solid rgba(255, 255, 255, 0.3);
+            font-size: 0.9em;
+            text-align: left;
+        }
+        .info-box p {
+            margin-bottom: 5px;
+        }
+        /* フッター */
+        footer {
+            margin-top: 30px;
+            font-size: 0.8em;
+            color: #7f8c8d;
+        }
+         /* モバイル対応 */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 1.5em;
+            }
+            button {
+                padding: 10px 20px;
+                font-size: 0.9em;
+            }
+            .controls-grid {
+                grid-template-columns: 1fr; /* 1列表示に */
+            }
+        }
+        .synth-controls {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .synth-control-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #000000;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .synth-control-group h3 {
+            color: #ffffff;
+        }
+        .loop-indicator {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #000000;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .loop-progress {
+            width: 100%;
+            height: 8px;
+            background-color: rgba(40, 40, 40, 0.8);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+        }
+        .loop-progress-bar {
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.3);
+            width: 0%;
+            transition: width 0.1s linear;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+        .loop-time {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8em;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 5px;
+        }
+        .loop-length-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 5px;
+        }
+        .loop-length-control input[type="range"] {
+            flex: 1;
+        }
+        .loop-length-control output {
+            min-width: 60px;
+            text-align: right;
+        }
+        .parameter-group {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #000000;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .parameter-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ffffff;
+            font-size: 0.9em;
+        }
+        .parameter-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        .parameter-group output {
+            font-size: 0.85em;
+            color: #ffffff;
+        }
+        .partials-group {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #000000;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .lfo-controls {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #000000;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .lfo-controls h4 {
+            margin: 0 0 10px 0;
+            color: #ffffff;
+            font-size: 0.9em;
+        }
+        .lfo-parameter {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .lfo-parameter label {
+            min-width: 80px;
+            font-size: 0.85em;
+            color: #ffffff;
+        }
+        .lfo-parameter input[type="range"] {
+            flex: 1;
+        }
+        .lfo-parameter output {
+            min-width: 50px;
+            text-align: right;
+            font-size: 0.85em;
+            color: #ffffff;
+        }
+        .bio-feedback {
+            margin-top: 8px;
+            font-size: 0.9em;
+            color: #ffffff;
+        }
+        .bio-feedback span:first-child {
+            color: #ffffff;
+        }
+        .bio-feedback span:last-child {
+            font-weight: bold;
+            color: #ffffff;
+        }
+        .parameter-change {
+            transition: color 0.3s ease;
+        }
+        .parameter-change.active {
+            color: #ffffff;
+        }
+        #animationCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: transparent;
+            pointer-events: none;
+        }
+        .container {
+            position: relative;
+            z-index: 1;
+            background-color: #000000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Music for Airports 2/1 - Tone.js 再現</h1>
+        <p>ブライアン・イーノの「Music for Airports 2/1」の作曲技法に基づき、Tone.jsを使用してそのアンビエントな音響空間を再現します。「再生」ボタンを押して、生成される音楽をお楽しみください。</p>
+        <div id="animationCanvas"></div>
+        <button id="playButton">再生</button>
+        <button id="stopButton" style="display:none;">停止</button>
+
+        <div class="controls-grid">
+            <div class="control-group">
+                <label for="hrSlider">HR (bpm):</label>
+                <input type="range" id="hrSlider" min="40" max="120" value="72">
+                <output id="hrVal">72</output>
+                <div class="bio-feedback">
+                    <span>テンポスケール: </span>
+                    <span id="tempoScaleVal">1.0</span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="hrvSlider">HRV (ms RMSSD):</label>
+                <input type="range" id="hrvSlider" min="10" max="120" value="35">
+                <output id="hrvVal">35</output>
+                <div class="bio-feedback">
+                    <span>リラックス度: </span>
+                    <span id="relaxVal">0.5</span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="masterVolume">マスター音量:</label>
+                <input type="range" id="masterVolume" min="0" max="1" step="0.01" value="0.7">
+                <output for="masterVolume" id="masterVolumeValue">0.70</output>
+            </div>
+            <div class="control-group">
+                <label for="reverbWet">リバーブ量:</label>
+                <input type="range" id="reverbWet" min="0" max="1" step="0.01" value="0.4">
+                <output for="reverbWet" id="reverbWetValue">0.40</output>
+            </div>
+        </div>
+
+        <div class="synth-controls">
+            <h2>シンセサイザー設定</h2>
+            <div id="synthControls"></div>
+        </div>
+
+        <div class="info-box">
+            <p><strong>この再現について:</strong></p>
+            <p>- 7つの非同期ボーカル風ループを使用しています。</p>
+            <p>- 各ループの音程と長さは、論文の分析に基づいています。</p>
+            <p>- 音の揺らぎや空間処理も再現を試みています。</p>
+        </div>
+    </div>
+    <footer>
+        <p>ブライアン・イーノの作品とアンビエントミュージックへのオマージュ。</p>
+    </footer>
+
+    <script>
+        // --- グローバル変数と初期設定 ---
+        let synths = []; // シンセサイザーのインスタンスを格納する配列
+        let loops = [];  // ループのインスタンスを格納する配列
+        let masterVolume, globalReverb; // マスターボリュームとリバーブ
+        let isPlaying = false; // 再生状態のフラグ
+        let pitchLFOs = []; // LFOインスタンスを格納する配列
+
+        // アニメーション用の変数
+        let PLOTS_COUNT = 5000; // パーティクルの数を増やす
+        let plots = [];
+        let rms;
+        let randomBgc;
+        let randomRotateX, randomRotateY, randomRotateZ;
+        let radiusPlus = 0;
+        let isSetupComplete = false;
+
+        // UI要素の取得
+        const playButton = document.getElementById('playButton');
+        const stopButton = document.getElementById('stopButton');
+        const masterVolumeSlider = document.getElementById('masterVolume');
+        const masterVolumeValue = document.getElementById('masterVolumeValue');
+        const reverbWetSlider = document.getElementById('reverbWet');
+        const reverbWetValue = document.getElementById('reverbWetValue');
+
+        // 論文 表1 に基づくループデータ
+        // ピッチ、推定ループ長 (秒)、音色の特徴 (Tone.jsでの再現方針)
+        // No. ピッチ  ループ長  音色特徴 (想定Tone.js音源)
+        // 1   A♭4   17.8s    持続的な女性の声 -> fatsine, 長いA/R
+        // 2   C4    20.1s    同上
+        // 3   D♭4   31.8s    同上 (不協和を生むことも)
+        // 4   F4    19.6s    同上
+        // 5   E♭4   16.2s    同上
+        // 6   A♭3   21.3s    同上 (低音域、深み)
+        // 7   F3    24.7s    同上 (低音域、深み)
+        const loopData = [
+            { 
+                note: "G#4", 
+                length: 17.8, 
+                baseLength: 17.8,
+                volume: -18, 
+                baseVolume: -18,
+                synthType: 'fatsine',
+                partials: [1, 0.5, 0.3, 0.1],
+                envelope: {
+                    attack: 3.5,
+                    decay: 1.5,
+                    sustain: 0.7,
+                    release: 12
+                }
+            },
+            { 
+                note: "C4",  
+                length: 20.1, 
+                baseLength: 20.1,
+                volume: -19, 
+                baseVolume: -19,
+                synthType: 'fatsine',
+                partials: [1, 0.4, 0.2, 0.1],
+                envelope: {
+                    attack: 4,
+                    decay: 1.8,
+                    sustain: 0.75,
+                    release: 14
+                }
+            },
+            { 
+                note: "C#4", 
+                length: 31.8, 
+                baseLength: 31.8,
+                volume: -20, 
+                baseVolume: -20,
+                synthType: 'fatsine',
+                partials: [1, 0.6, 0.3, 0.15],
+                envelope: {
+                    attack: 3.8,
+                    decay: 2,
+                    sustain: 0.7,
+                    release: 15
+                }
+            },
+            { 
+                note: "F4",  
+                length: 19.6, 
+                baseLength: 19.6,
+                volume: -18, 
+                baseVolume: -18,
+                synthType: 'fatsine',
+                partials: [1, 0.45, 0.25, 0.12],
+                envelope: {
+                    attack: 3.2,
+                    decay: 1.6,
+                    sustain: 0.72,
+                    release: 13
+                }
+            },
+            { 
+                note: "D#4", 
+                length: 16.2, 
+                baseLength: 16.2,
+                volume: -19, 
+                baseVolume: -19,
+                synthType: 'fatsine',
+                partials: [1, 0.55, 0.28, 0.13],
+                envelope: {
+                    attack: 3.6,
+                    decay: 1.7,
+                    sustain: 0.68,
+                    release: 11
+                }
+            },
+            { 
+                note: "G#3", 
+                length: 21.3, 
+                baseLength: 21.3,
+                volume: -17, 
+                baseVolume: -17,
+                synthType: 'fatsine',
+                partials: [1, 0.48, 0.22, 0.11],
+                envelope: {
+                    attack: 4.2,
+                    decay: 1.9,
+                    sustain: 0.73,
+                    release: 16
+                }
+            },
+            { 
+                note: "F3",  
+                length: 24.7, 
+                baseLength: 24.7,
+                volume: -17, 
+                baseVolume: -17,
+                synthType: 'fatsine',
+                partials: [1, 0.52, 0.26, 0.14],
+                envelope: {
+                    attack: 4.5,
+                    decay: 2.1,
+                    sustain: 0.71,
+                    release: 17
+                }
+            }
+        ].map(d => ({...d, currentLength: d.length}));
+
+        // ユーティリティ関数
+        function clamp(value, min, max) {
+            return Math.min(Math.max(value, min), max);
+        }
+
+        // バイオフィードバック関数
+        function applyBioFeedback(hr, hrv) {
+            const tempoScale = clamp(hr/60, 0.6, 1.5);           // HR 60bpm 基準
+            const relax = 1/(1+Math.exp(-(hrv-30)/15));          // 0〜1
+
+            // バイオフィードバック値の表示を更新
+            document.getElementById('tempoScaleVal').textContent = tempoScale.toFixed(2);
+            document.getElementById('relaxVal').textContent = relax.toFixed(2);
+
+            loopData.forEach((d, i) => {
+                // ループ長の更新
+                const newLen = d.baseLength * tempoScale;
+                d.currentLength = newLen;
+                if (loops[i]) {
+                    // 現在のループを停止して新しいループを作成
+                    loops[i].stop();
+                    const newLoop = new Tone.Loop(time => {
+                        synths[i].triggerAttackRelease(d.note, newLen * 0.9, time);
+                    }, newLen);
+                    newLoop.humanize = "0.05s";
+                    newLoop.start();
+                    loops[i] = newLoop;
+                }
+
+                // 音量の更新（HRVに基づく）
+                const targetVol = d.baseVolume + 6*(relax-1);
+                if (synths[i]) {
+                    synths[i].volume.rampTo(targetVol, 2);
+                    // 音量スライダーの値を更新
+                    const volumeSlider = document.getElementById(`volume${i}`);
+                    if (volumeSlider) {
+                        volumeSlider.value = targetVol;
+                        document.getElementById(`volumeValue${i}`).textContent = targetVol.toFixed(1);
+                    }
+                }
+
+                // LFOの更新（HRVに基づく）
+                if (pitchLFOs[i]) {
+                    // LFO周波数の更新（HRに基づく）
+                    const lfoFreq = clamp(0.01 + (hr/60) * 0.05, 0.01, 0.1);
+                    pitchLFOs[i].frequency.value = lfoFreq;
+                    const lfoFreqSlider = document.getElementById(`lfoFreq${i}`);
+                    if (lfoFreqSlider) {
+                        lfoFreqSlider.value = lfoFreq;
+                        document.getElementById(`lfoFreqValue${i}`).textContent = `${lfoFreq.toFixed(3)} Hz`;
+                    }
+
+                    // LFO振幅の更新（HRVに基づく）
+                    const newAmplitude = 1 + 2*(1-relax);
+                    pitchLFOs[i].amplitude.value = newAmplitude;
+                    const lfoMaxSlider = document.getElementById(`lfoMax${i}`);
+                    if (lfoMaxSlider) {
+                        lfoMaxSlider.value = newAmplitude * 3;
+                        document.getElementById(`lfoMaxValue${i}`).textContent = (newAmplitude * 3).toFixed(1);
+                    }
+                }
+
+                // エンベロープの更新（HRVに基づく）
+                if (synths[i]) {
+                    // アタックタイムの更新
+                    const newAttack = clamp(d.envelope.attack * (1 + (1-relax)), 0.1, 10);
+                    synths[i].envelope.attack = newAttack;
+                    const attackSlider = document.getElementById(`attack${i}`);
+                    if (attackSlider) {
+                        attackSlider.value = newAttack;
+                        document.getElementById(`attackValue${i}`).textContent = newAttack.toFixed(1);
+                    }
+
+                    // リリースタイムの更新
+                    const newRelease = clamp(d.envelope.release * (1 + (1-relax)), 0.1, 20);
+                    synths[i].envelope.release = newRelease;
+                    const releaseSlider = document.getElementById(`release${i}`);
+                    if (releaseSlider) {
+                        releaseSlider.value = newRelease;
+                        document.getElementById(`releaseValue${i}`).textContent = newRelease.toFixed(1);
+                    }
+                }
+
+                // 倍音構成の更新（HRVに基づく）
+                if (synths[i]) {
+                    const newPartials = d.partials.map((p, j) => {
+                        const partialSlider = document.getElementById(`partial${i}_${j}`);
+                        if (partialSlider) {
+                            const newValue = clamp(p * (1 + (relax-0.5)), 0, 1);
+                            partialSlider.value = newValue;
+                            document.getElementById(`partialValue${i}_${j}`).textContent = newValue.toFixed(2);
+                            return newValue;
+                        }
+                        return p;
+                    });
+                    synths[i].oscillator.partials = newPartials;
+                }
+
+                // ループ時間表示の更新
+                const totalTimeDisplay = document.getElementById(`totalTime${i}`);
+                if (totalTimeDisplay) {
+                    totalTimeDisplay.textContent = `${newLen.toFixed(1)}s`;
+                }
+
+                // パラメータ変更の視覚的フィードバック
+                const synthGroup = document.querySelector(`.synth-control-group:nth-child(${i + 1})`);
+                if (synthGroup) {
+                    const labels = synthGroup.querySelectorAll('label');
+                    labels.forEach(label => {
+                        label.classList.add('parameter-change', 'active');
+                        setTimeout(() => label.classList.remove('active'), 1000);
+                    });
+                }
+            });
+        }
+
+        // 生体データスライダーのイベントリスナー
+        const hrSlider = document.getElementById('hrSlider');
+        const hrvSlider = document.getElementById('hrvSlider');
+        const hrVal = document.getElementById('hrVal');
+        const hrvVal = document.getElementById('hrvVal');
+
+        // 初期値の設定（AudioContextが開始された後に実行）
+        async function initializeBioFeedback() {
+            if (Tone.context.state !== 'running') {
+                await Tone.start();
+            }
+            hrVal.textContent = hrSlider.value;
+            hrvVal.textContent = hrvSlider.value;
+            applyBioFeedback(parseFloat(hrSlider.value), parseFloat(hrvSlider.value));
+        }
+
+        // スライダーのイベントリスナー
+        hrSlider.addEventListener('input', function(e) {
+            const value = e.target.value;
+            hrVal.textContent = value;
+            applyBioFeedback(parseFloat(value), parseFloat(hrvSlider.value));
+        });
+
+        hrvSlider.addEventListener('input', function(e) {
+            const value = e.target.value;
+            hrvVal.textContent = value;
+            applyBioFeedback(parseFloat(hrSlider.value), parseFloat(value));
+        });
+
+        // スライダーの値が変更された時もバイオフィードバックを適用
+        hrSlider.addEventListener('change', function(e) {
+            const value = e.target.value;
+            hrVal.textContent = value;
+            applyBioFeedback(parseFloat(value), parseFloat(hrvSlider.value));
+        });
+
+        hrvSlider.addEventListener('change', function(e) {
+            const value = e.target.value;
+            hrvVal.textContent = value;
+            applyBioFeedback(parseFloat(hrSlider.value), parseFloat(value));
+        });
+
+        // --- 初期化関数 ---
+        async function initializeAudio() {
+            // マスターボリュームの設定 (論文 III.C.6)
+            masterVolume = new Tone.Volume(parseFloat(masterVolumeSlider.value) * 20 - 20).toDestination(); // スライダー値をデシベルに変換 (0 to 1 -> -20dB to 0dB approx)
+
+            // グローバルリバーブの設定 (論文 III.C.6, III.D.1)
+            // 長いディケイタイムで空間的な響きを
+            globalReverb = new Tone.Reverb({
+                decay: 15, // 論文推奨: 10-15秒
+                wet: parseFloat(reverbWetSlider.value), // 論文推奨: 0.3-0.4
+                preDelay: 0.05
+            }).connect(masterVolume);
+
+            // 各ループのシンセサイザーとスケジューリングを設定 (論文 III.C.2, III.C.3, III.D.3)
+            loopData.forEach((data, index) => {
+                // シンセサイザーの作成 (声のような音色を目指す)
+                // 論文 III.C.2 オプション2: シンセサイザーによる音声合成
+                // オシレーター: fatsine (複数のサイン波を重ねて厚みを出す), fatsawtooth (フィルターで柔らかく)
+                // エンベロープ: 長いアタックと非常に長いリリース
+                const synth = new Tone.Synth({
+                    oscillator: {
+                        type: data.synthType,
+                        count: 4,
+                        spread: 15
+                    },
+                    envelope: {
+                        attack: data.envelope.attack,
+                        decay: data.envelope.decay,
+                        sustain: data.envelope.sustain,
+                        release: data.envelope.release
+                    },
+                    volume: data.volume
+                }).connect(globalReverb);
+                synths.push(synth);
+
+                // アナログの揺らぎをエミュレート (論文 III.C.5, III.D.4)
+                // LFOでピッチを微細に変調 (ワウフラッター風)
+                const pitchLFO = new Tone.LFO({
+                    frequency: 0.02,
+                    min: -3,
+                    max: 3,
+                    amplitude: 1
+                }).start();
+                pitchLFO.connect(synth.detune);
+                pitchLFOs.push(pitchLFO); // LFOインスタンスを配列に保存
+
+                // Tone.Loopで非同期ループを実装
+                // 論文 II.A, III.C.3
+                const loop = new Tone.Loop(time => {
+                    // 'time'はTone.Transportによって正確にスケジュールされた時刻
+                    // triggerAttackReleaseのデュレーションはループ長より少し短くし、音が自然に減衰するように
+                    // 論文 III.C.3: デュレーションはループインターバルよりわずかに短く
+                    synth.triggerAttackRelease(data.note, data.length * 0.9, time);
+                }, data.length); // 第2引数にループ長
+
+                // ループタイミングにわずかな揺らぎを追加 (humanize) (論文 III.D.4)
+                loop.humanize = "0.05s"; // 最大50msの揺らぎ
+
+                loops.push(loop);
+            });
+
+            // シンセコントロールの生成
+            createSynthControls();
+        }
+
+        // --- 再生/停止ロジック ---
+        playButton.addEventListener('click', async () => {
+            if (!isPlaying) {
+                if (Tone.context.state !== 'running') {
+                    await Tone.start();
+                    console.log('AudioContext started by user interaction.');
+                }
+                if (!masterVolume) {
+                    await initializeAudio();
+                }
+
+                Tone.Transport.start();
+                loops.forEach((loop, index) => {
+                    loop.start(index * 0.1);
+                });
+                isPlaying = true;
+                playButton.style.display = 'none';
+                stopButton.style.display = 'inline-block';
+                console.log('Playback started.');
+                
+                // 初期のバイオフィードバックを適用
+                await initializeBioFeedback();
+                
+                // ループ位置の更新を開始
+                updateLoopPositions();
+            }
+        });
+
+        stopButton.addEventListener('click', () => {
+            if (isPlaying) {
+                Tone.Transport.stop(); // トランスポートを停止
+                loops.forEach(loop => loop.stop(0)); // 全てのループを停止
+                synths.forEach(synth => synth.releaseAll()); // 発音中の音をリリース
+                pitchLFOs.forEach(lfo => lfo.stop());
+
+                // オプション: リソースを解放する場合は以下も検討
+                // loops.forEach(loop => loop.dispose());
+                // synths.forEach(synth => synth.dispose());
+                // globalReverb.dispose();
+                // masterVolume.dispose();
+                // loops = []; synths = []; globalReverb = null; masterVolume = null;
+
+                isPlaying = false;
+                playButton.style.display = 'inline-block';
+                stopButton.style.display = 'none';
+                console.log('Playback stopped.');
+
+                // プログレスバーをリセット
+                loopData.forEach((data, index) => {
+                    const progressBar = document.getElementById(`progress${index}`);
+                    const currentTimeDisplay = document.getElementById(`currentTime${index}`);
+                    if (progressBar && currentTimeDisplay) {
+                        progressBar.style.width = '0%';
+                        currentTimeDisplay.textContent = '0.0s';
+                    }
+                });
+            }
+        });
+
+        // --- UIコントロールのイベントリスナー ---
+        masterVolumeSlider.addEventListener('input', (e) => {
+            const dbValue = parseFloat(e.target.value) * 40 - 40; // 0-1 -> -40dB to 0dB
+            if (masterVolume) {
+                masterVolume.volume.value = dbValue;
+            }
+            masterVolumeValue.textContent = parseFloat(e.target.value).toFixed(2);
+        });
+
+        reverbWetSlider.addEventListener('input', (e) => {
+            if (globalReverb) {
+                globalReverb.wet.value = parseFloat(e.target.value);
+            }
+            reverbWetValue.textContent = parseFloat(e.target.value).toFixed(2);
+        });
+
+        // 初期UI値の表示更新
+        masterVolumeValue.textContent = parseFloat(masterVolumeSlider.value).toFixed(2);
+        reverbWetValue.textContent = parseFloat(reverbWetSlider.value).toFixed(2);
+
+        // ウィンドウリサイズ時のレイアウト調整 (オプション)
+        window.addEventListener('resize', () => {
+            // 必要に応じてレイアウト調整コードをここに追加
+        });
+
+        // シンセコントロールの生成
+        function createSynthControls() {
+            const controlsContainer = document.getElementById('synthControls');
+            
+            loopData.forEach((data, index) => {
+                const synthGroup = document.createElement('div');
+                synthGroup.className = 'synth-control-group';
+                synthGroup.innerHTML = `
+                    <h3>シンセ ${index + 1} (${data.note})</h3>
+                    
+                    <div class="loop-indicator">
+                        <div class="loop-progress" id="progressContainer${index}">
+                            <div class="loop-progress-bar" id="progress${index}"></div>
+                        </div>
+                        <div class="loop-time">
+                            <span id="currentTime${index}">0.0s</span>
+                            <span id="totalTime${index}">${data.length.toFixed(1)}s</span>
+                        </div>
+                        <div class="loop-length-control">
+                            <label for="length${index}">ループ長:</label>
+                            <input type="range" id="length${index}" 
+                                min="5" max="40" step="0.1" 
+                                value="${data.length}">
+                            <output for="length${index}" id="lengthValue${index}">${data.length.toFixed(1)}s</output>
+                        </div>
+                    </div>
+
+                    <div class="parameter-group">
+                        <label for="volume${index}">音量:</label>
+                        <input type="range" id="volume${index}" min="-40" max="0" step="0.1" value="${data.volume}">
+                        <output for="volume${index}" id="volumeValue${index}">${data.volume}</output>
+                    </div>
+
+                    <div class="parameter-group">
+                        <label>倍音構成:</label>
+                        <div class="partials-group">
+                            ${[0, 1, 2, 3].map(i => `
+                                <div>
+                                    <label for="partial${index}_${i}">倍音 ${i + 1}:</label>
+                                    <input type="range" id="partial${index}_${i}" min="0" max="1" step="0.01" value="${data.partials[i]}">
+                                    <output for="partial${index}_${i}" id="partialValue${index}_${i}">${data.partials[i]}</output>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="parameter-group">
+                        <label>エンベロープ:</label>
+                        <div>
+                            <label for="attack${index}">アタック:</label>
+                            <input type="range" id="attack${index}" min="0.1" max="10" step="0.1" value="${data.envelope.attack}">
+                            <output for="attack${index}" id="attackValue${index}">${data.envelope.attack}</output>
+                        </div>
+                        <div>
+                            <label for="decay${index}">ディケイ:</label>
+                            <input type="range" id="decay${index}" min="0.1" max="5" step="0.1" value="${data.envelope.decay}">
+                            <output for="decay${index}" id="decayValue${index}">${data.envelope.decay}</output>
+                        </div>
+                        <div>
+                            <label for="sustain${index}">サステイン:</label>
+                            <input type="range" id="sustain${index}" min="0" max="1" step="0.01" value="${data.envelope.sustain}">
+                            <output for="sustain${index}" id="sustainValue${index}">${data.envelope.sustain}</output>
+                        </div>
+                        <div>
+                            <label for="release${index}">リリース:</label>
+                            <input type="range" id="release${index}" min="0.1" max="20" step="0.1" value="${data.envelope.release}">
+                            <output for="release${index}" id="releaseValue${index}">${data.envelope.release}</output>
+                        </div>
+                    </div>
+
+                    <div class="lfo-controls">
+                        <h4>LFO設定</h4>
+                        <div class="lfo-parameter">
+                            <label for="lfoFreq${index}">周波数:</label>
+                            <input type="range" id="lfoFreq${index}" min="0.01" max="0.1" step="0.001" value="0.02">
+                            <output for="lfoFreq${index}" id="lfoFreqValue${index}">0.02 Hz</output>
+                        </div>
+                        <div class="lfo-parameter">
+                            <label for="lfoMin${index}">最小値:</label>
+                            <input type="range" id="lfoMin${index}" min="-10" max="0" step="0.1" value="-3">
+                            <output for="lfoMin${index}" id="lfoMinValue${index}">-3</output>
+                        </div>
+                        <div class="lfo-parameter">
+                            <label for="lfoMax${index}">最大値:</label>
+                            <input type="range" id="lfoMax${index}" min="0" max="10" step="0.1" value="3">
+                            <output for="lfoMax${index}" id="lfoMaxValue${index}">3</output>
+                        </div>
+                    </div>
+                `;
+                controlsContainer.appendChild(synthGroup);
+
+                // イベントリスナーの設定
+                const volumeSlider = document.getElementById(`volume${index}`);
+                const partialSliders = [0, 1, 2, 3].map(i => document.getElementById(`partial${index}_${i}`));
+                const attackSlider = document.getElementById(`attack${index}`);
+                const decaySlider = document.getElementById(`decay${index}`);
+                const sustainSlider = document.getElementById(`sustain${index}`);
+                const releaseSlider = document.getElementById(`release${index}`);
+
+                // 音量の制御
+                volumeSlider.addEventListener('input', (e) => {
+                    if (synths[index]) {
+                        synths[index].volume.value = parseFloat(e.target.value);
+                        document.getElementById(`volumeValue${index}`).textContent = e.target.value;
+                    }
+                });
+
+                // 倍音の制御
+                partialSliders.forEach((slider, i) => {
+                    slider.addEventListener('input', (e) => {
+                        if (synths[index]) {
+                            const newPartials = [...data.partials];
+                            newPartials[i] = parseFloat(e.target.value);
+                            synths[index].oscillator.partials = newPartials;
+                            document.getElementById(`partialValue${index}_${i}`).textContent = e.target.value;
+                        }
+                    });
+                });
+
+                // エンベロープの制御
+                attackSlider.addEventListener('input', (e) => {
+                    if (synths[index]) {
+                        synths[index].envelope.attack = parseFloat(e.target.value);
+                        document.getElementById(`attackValue${index}`).textContent = e.target.value;
+                    }
+                });
+
+                decaySlider.addEventListener('input', (e) => {
+                    if (synths[index]) {
+                        synths[index].envelope.decay = parseFloat(e.target.value);
+                        document.getElementById(`decayValue${index}`).textContent = e.target.value;
+                    }
+                });
+
+                sustainSlider.addEventListener('input', (e) => {
+                    if (synths[index]) {
+                        synths[index].envelope.sustain = parseFloat(e.target.value);
+                        document.getElementById(`sustainValue${index}`).textContent = e.target.value;
+                    }
+                });
+
+                releaseSlider.addEventListener('input', (e) => {
+                    if (synths[index]) {
+                        synths[index].envelope.release = parseFloat(e.target.value);
+                        document.getElementById(`releaseValue${index}`).textContent = e.target.value;
+                    }
+                });
+
+                // ループ長の制御
+                const lengthSlider = document.getElementById(`length${index}`);
+                const lengthValue = document.getElementById(`lengthValue${index}`);
+                const totalTimeDisplay = document.getElementById(`totalTime${index}`);
+                const progressContainer = document.getElementById(`progressContainer${index}`);
+
+                lengthSlider.addEventListener('input', (e) => {
+                    const newLength = parseFloat(e.target.value);
+                    lengthValue.textContent = `${newLength.toFixed(1)}s`;
+                    totalTimeDisplay.textContent = `${newLength.toFixed(1)}s`;
+                    
+                    if (loops[index]) {
+                        // 現在のループを停止
+                        loops[index].stop();
+                        // 新しい長さでループを再作成
+                        const newLoop = new Tone.Loop(time => {
+                            synths[index].triggerAttackRelease(data.note, newLength * 0.9, time);
+                        }, newLength);
+                        newLoop.humanize = "0.05s";
+                        // 現在の時間から新しいループを開始
+                        const currentTime = Tone.Transport.seconds;
+                        const offset = currentTime % newLength;
+                        newLoop.start(currentTime - offset);
+                        // 古いループを新しいループで置き換え
+                        loops[index] = newLoop;
+                    }
+                });
+
+                // プログレスバーのクリックでループ位置を変更
+                progressContainer.addEventListener('click', (e) => {
+                    if (!isPlaying) return;
+                    
+                    const rect = progressContainer.getBoundingClientRect();
+                    const clickPosition = (e.clientX - rect.left) / rect.width;
+                    const newTime = clickPosition * data.length;
+                    
+                    if (loops[index]) {
+                        // 現在のループを停止
+                        loops[index].stop();
+                        // 新しい位置からループを開始
+                        const newLoop = new Tone.Loop(time => {
+                            synths[index].triggerAttackRelease(data.note, data.length * 0.9, time);
+                        }, data.length);
+                        newLoop.humanize = "0.05s";
+                        newLoop.start(Tone.Transport.seconds + newTime);
+                        // 古いループを新しいループで置き換え
+                        loops[index] = newLoop;
+                    }
+                });
+
+                // LFOの制御
+                const lfoFreqSlider = document.getElementById(`lfoFreq${index}`);
+                const lfoMinSlider = document.getElementById(`lfoMin${index}`);
+                const lfoMaxSlider = document.getElementById(`lfoMax${index}`);
+
+                lfoFreqSlider.addEventListener('input', (e) => {
+                    const newFreq = parseFloat(e.target.value);
+                    if (pitchLFOs[index]) {
+                        pitchLFOs[index].frequency.value = newFreq;
+                        document.getElementById(`lfoFreqValue${index}`).textContent = `${newFreq.toFixed(3)} Hz`;
+                    }
+                });
+
+                lfoMinSlider.addEventListener('input', (e) => {
+                    const newMin = parseFloat(e.target.value);
+                    if (pitchLFOs[index]) {
+                        pitchLFOs[index].min = newMin;
+                        document.getElementById(`lfoMinValue${index}`).textContent = newMin;
+                    }
+                });
+
+                lfoMaxSlider.addEventListener('input', (e) => {
+                    const newMax = parseFloat(e.target.value);
+                    if (pitchLFOs[index]) {
+                        pitchLFOs[index].max = newMax;
+                        document.getElementById(`lfoMaxValue${index}`).textContent = newMax;
+                    }
+                });
+            });
+        }
+
+        // ループ位置の更新
+        function updateLoopPositions() {
+            if (!isPlaying) return;
+
+            const currentTime = Tone.Transport.seconds;
+            
+            loopData.forEach((data, index) => {
+                const loopTime = currentTime % data.length;
+                const progress = (loopTime / data.length) * 100;
+                
+                const progressBar = document.getElementById(`progress${index}`);
+                const currentTimeDisplay = document.getElementById(`currentTime${index}`);
+                
+                if (progressBar && currentTimeDisplay) {
+                    progressBar.style.width = `${progress}%`;
+                    currentTimeDisplay.textContent = `${loopTime.toFixed(1)}s`;
+                }
+            });
+
+            requestAnimationFrame(updateLoopPositions);
+        }
+
+        // p5.jsのセットアップ
+        function setup() {
+            const canvas = createCanvas(windowWidth, windowHeight, WEBGL);
+            canvas.parent('animationCanvas');
+            colorMode(HSB, 360, 100, 100, 100);
+            
+            // 背景色の初期化
+            randomBgc = 0; // 黒背景
+            background(randomBgc, 0, 0);
+
+            // パーティクルの初期化
+            for (let i = 0; i < PLOTS_COUNT; i++) {
+                plots[i] = new Plot();
+            }
+
+            // 回転速度の初期化
+            randomRotateX = random(0.005, 0.015);
+            randomRotateY = random(0.005, 0.015);
+            randomRotateZ = random(0.005, 0.015);
+
+            isSetupComplete = true;
+        }
+
+        // アニメーションの描画
+        function draw() {
+            if (!isSetupComplete || !masterVolume) return;
+
+            // 半透明の背景
+            fill(0, 0, 0, 30);
+            noStroke();
+            rect(-innerWidth * 0.5, -innerHeight * 0.5, innerWidth, innerHeight);
+
+            // 音声レベルに基づくパラメータの計算
+            let rmsNum = 0;
+            if (masterVolume) {
+                rmsNum = masterVolume.volume.value / 20;
+            }
+            let pointCount = abs(rmsNum) * 30 * windowWidth * 0.001 + 3;
+
+            // 3D変換
+            translate(0, -10, 500);
+            rotateX(frameCount * randomRotateX);
+            rotateY(frameCount * randomRotateY);
+            rotateZ(frameCount * randomRotateZ);
+            rotateX(noise(frameCount * 0.003));
+
+            // パーティクルの描画
+            noFill();
+            stroke(0, 0, 100, 30); // 白系の色
+            for (let j = 0; j < PLOTS_COUNT; j++) {
+                plots[j].update(pointCount);
+                strokeWeight(random(0.5, 1.5)); // 線の太さを調整
+                point(plots[j].x, plots[j].y, plots[j].z);
+            }
+        }
+
+        // パーティクルクラス
+        class Plot {
+            constructor() {
+                let radiusNum = windowWidth * 0.03;
+                let unitZ = random(-1, 1);
+                let radianT = radians(random(360));
+                this.x = radiusNum * sqrt(1 - unitZ * unitZ) * cos(radianT);
+                this.y = radiusNum * sqrt(1 - unitZ * unitZ) * sin(radianT);
+                this.z = radiusNum * unitZ;
+            }
+
+            update(radiusChange) {
+                let radiusNum = radiusChange + windowWidth * 0.03 + radiusPlus;
+                let unitZ = random(random(random(-1, 1)));
+                let radianT = radians(random(360));
+                this.x = radiusNum * sqrt(1 - unitZ * unitZ) * cos(radianT) + random(-3, 3) * windowWidth * 0.001;
+                this.y = radiusNum * sqrt(1 - unitZ * unitZ) * sin(radianT) + random(-3, 3) * windowWidth * 0.001;
+                this.z = radiusNum * unitZ + random(-3, 3) * windowWidth * 0.001;
+            }
+        }
+
+        // マウスドラッグによるインタラクション
+        function mouseDragged() {
+            if (mouseX > 350 || mouseY > 180) {
+                radiusPlus += (mouseX - pmouseX) / 3;
+                radiusPlus += (pmouseY - mouseY) / 3;
+            }
+        }
+
+        // ウィンドウリサイズ時の処理
+        function windowResized() {
+            resizeCanvas(windowWidth, windowHeight, WEBGL);
+        }
+
+    </script>
+</body>
+</html>
