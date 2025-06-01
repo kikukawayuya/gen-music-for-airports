@@ -21,7 +21,7 @@
             box-sizing: border-box;
         }
         .container {
-            background-color: rgba(0, 0, 0, 0.8);
+            background-color: transparent;
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 8px 16px rgba(255, 255, 255, 0.1);
@@ -75,7 +75,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color: #000000;
+            background-color: transparent;
             padding: 15px;
             border-radius: 8px;
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -108,7 +108,7 @@
         .info-box {
             margin-top: 30px;
             padding: 15px;
-            background-color: #000000;
+            background-color: transparent;
             border-left: 4px solid rgba(255, 255, 255, 0.3);
             font-size: 0.9em;
             text-align: left;
@@ -156,7 +156,7 @@
         .synth-control-group {
             margin-bottom: 20px;
             padding: 15px;
-            background-color: #000000;
+            background-color: transparent;
             border-radius: 8px;
             box-shadow: 0 1px 3px rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -167,7 +167,7 @@
         .loop-indicator {
             margin: 15px 0;
             padding: 10px;
-            background-color: #000000;
+            background-color: transparent;
             border-radius: 6px;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
@@ -212,7 +212,7 @@
         .parameter-group {
             margin-bottom: 15px;
             padding: 10px;
-            background-color: #000000;
+            background-color: transparent;
             border-radius: 6px;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
@@ -236,14 +236,14 @@
             gap: 10px;
             margin-top: 10px;
             padding: 10px;
-            background-color: #000000;
+            background-color: transparent;
             border-radius: 6px;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         .lfo-controls {
             margin-top: 15px;
             padding: 10px;
-            background-color: #000000;
+            background-color: transparent;
             border-radius: 6px;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
@@ -378,6 +378,73 @@
         let randomRotateX, randomRotateY, randomRotateZ;
         let radiusPlus = 0;
         let isSetupComplete = false;
+
+        // 太陽と惑星の変数
+        let sun;
+        let planets = [];
+        let planetOrbits = [];
+
+        // 太陽クラス
+        class Sun {
+            constructor() {
+                this.radius = 15;
+                this.baseBrightness = 100;
+                this.currentBrightness = 100;
+            }
+
+            update(volume) {
+                // 音量に応じて明度を変化（-20dB to 0dB を 50-100 に変換）
+                const normalizedVolume = (volume + 20) / 20; // 0-1に正規化
+                this.currentBrightness = 50 + normalizedVolume * 50;
+            }
+
+            draw() {
+                push();
+                noStroke();
+                fill(0, 0, this.currentBrightness);
+                sphere(this.radius);
+                pop();
+            }
+        }
+
+        // 惑星クラス
+        class Planet {
+            constructor(orbitRadius, orbitSpeed, size, color, synthIndex) {
+                this.orbitRadius = orbitRadius;
+                this.orbitSpeed = orbitSpeed;
+                this.angle = random(TWO_PI);
+                this.size = size;
+                this.baseColor = color;
+                this.synthIndex = synthIndex;
+                this.currentBrightness = 100;
+            }
+
+            update(synths) {
+                this.angle += this.orbitSpeed;
+                if (this.angle > TWO_PI) {
+                    this.angle -= TWO_PI;
+                }
+
+                // 対応するシンセのLFOの現在値を取得して明度を更新
+                if (synths[this.synthIndex]) {
+                    const lfoValue = synths[this.synthIndex].detune.value;
+                    // LFOの値を-3から3の範囲で0-100に変換
+                    const normalizedLfo = (lfoValue + 3) / 6;
+                    this.currentBrightness = 30 + normalizedLfo * 70; // 30-100の範囲で明滅
+                }
+            }
+
+            draw() {
+                push();
+                noStroke();
+                fill(this.baseColor[0], this.baseColor[1], this.currentBrightness);
+                let x = cos(this.angle) * this.orbitRadius;
+                let y = sin(this.angle) * this.orbitRadius;
+                translate(x, y, 0);
+                sphere(this.size);
+                pop();
+            }
+        }
 
         // UI要素の取得
         const playButton = document.getElementById('playButton');
@@ -1070,7 +1137,7 @@
             colorMode(HSB, 360, 100, 100, 100);
             
             // 背景色の初期化
-            randomBgc = 0; // 黒背景
+            randomBgc = 0;
             background(randomBgc, 0, 0);
 
             // パーティクルの初期化
@@ -1082,6 +1149,28 @@
             randomRotateX = random(0.005, 0.015);
             randomRotateY = random(0.005, 0.015);
             randomRotateZ = random(0.005, 0.015);
+
+            // 太陽の初期化
+            sun = new Sun();
+
+            // 惑星の初期化
+            const baseOrbitRadius = 80;
+            const planetSizes = [4, 5, 3, 6, 4, 5, 3];
+            const planetColors = [
+                [200, 80, 100],  // 青白
+                [210, 85, 100],
+                [190, 75, 100],
+                [220, 90, 100],
+                [180, 70, 100],
+                [230, 95, 100],
+                [170, 65, 100]
+            ];
+
+            for (let i = 0; i < 7; i++) {
+                const orbitRadius = baseOrbitRadius + i * 15;
+                const orbitSpeed = TWO_PI / (loopData[i].length * 60);
+                planets.push(new Planet(orbitRadius, orbitSpeed, planetSizes[i], planetColors[i], i));
+            }
 
             isSetupComplete = true;
         }
@@ -1098,31 +1187,39 @@
             // 音声レベルに基づくパラメータの計算
             let rmsNum = 0;
             if (masterVolume) {
-                rmsNum = masterVolume.volume.value / 20;
+                rmsNum = masterVolume.volume.value;
             }
             let pointCount = abs(rmsNum) * 30 * windowWidth * 0.001 + 3;
 
-            // 3D変換
-            translate(0, -10, 500);
-            rotateX(frameCount * randomRotateX);
-            rotateY(frameCount * randomRotateY);
-            rotateZ(frameCount * randomRotateZ);
-            rotateX(noise(frameCount * 0.003));
+            // 全体の回転
+            rotateX(frameCount * randomRotateX + radiusPlus * 0.01);
+            rotateY(frameCount * randomRotateY + radiusPlus * 0.01);
+            rotateZ(frameCount * randomRotateZ + radiusPlus * 0.01);
 
             // パーティクルの描画
             noFill();
-            stroke(0, 0, 100, 30); // 白系の色
+            stroke(0, 0, 100, 30);
             for (let j = 0; j < PLOTS_COUNT; j++) {
                 plots[j].update(pointCount);
-                strokeWeight(random(0.5, 1.5)); // 線の太さを調整
+                strokeWeight(random(0.5, 1.5));
                 point(plots[j].x, plots[j].y, plots[j].z);
+            }
+
+            // 太陽の更新と描画
+            sun.update(rmsNum);
+            sun.draw();
+
+            // 惑星の更新と描画
+            for (let planet of planets) {
+                planet.update(synths);
+                planet.draw();
             }
         }
 
         // パーティクルクラス
         class Plot {
             constructor() {
-                let radiusNum = windowWidth * 0.03;
+                let radiusNum = windowWidth * 0.02; // パーティクルの範囲を小さく
                 let unitZ = random(-1, 1);
                 let radianT = radians(random(360));
                 this.x = radiusNum * sqrt(1 - unitZ * unitZ) * cos(radianT);
@@ -1131,7 +1228,7 @@
             }
 
             update(radiusChange) {
-                let radiusNum = radiusChange + windowWidth * 0.03 + radiusPlus;
+                let radiusNum = radiusChange + windowWidth * 0.02 + radiusPlus;
                 let unitZ = random(random(random(-1, 1)));
                 let radianT = radians(random(360));
                 this.x = radiusNum * sqrt(1 - unitZ * unitZ) * cos(radianT) + random(-3, 3) * windowWidth * 0.001;
@@ -1142,10 +1239,8 @@
 
         // マウスドラッグによるインタラクション
         function mouseDragged() {
-            if (mouseX > 350 || mouseY > 180) {
-                radiusPlus += (mouseX - pmouseX) / 3;
-                radiusPlus += (pmouseY - mouseY) / 3;
-            }
+            radiusPlus += (mouseX - pmouseX) / 3;
+            radiusPlus += (pmouseY - mouseY) / 3;
         }
 
         // ウィンドウリサイズ時の処理
