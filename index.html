@@ -436,12 +436,37 @@
 
             draw() {
                 push();
-                noStroke();
-                fill(this.baseColor[0], this.baseColor[1], this.currentBrightness);
                 let x = cos(this.angle) * this.orbitRadius;
                 let y = sin(this.angle) * this.orbitRadius;
                 translate(x, y, 0);
+                
+                // 幻想的な白い光の効果を作成
+                // 複数の半透明レイヤーを重ねて描画
+                noStroke();
+                
+                // 外側のグロー効果（大きく薄い）
+                fill(0, 0, 100, 10); // 白、透明度10%
+                sphere(this.size * 3);
+                
+                // 中間層（中程度の大きさと透明度）
+                fill(0, 0, 100, 20); // 白、透明度20%
+                sphere(this.size * 2);
+                
+                // 内側の層（やや濃い）
+                fill(0, 0, 100, 30); // 白、透明度30%
+                sphere(this.size * 1.5);
+                
+                // コアの部分（最も明るい）
+                // LFOによって変化する明度を使用
+                fill(0, 0, this.currentBrightness, 50 + (this.currentBrightness - 30) * 0.3);
                 sphere(this.size);
+                
+                // きらめきエフェクト（ランダムな小さな光点）
+                if (random(1) > 0.95) {
+                    fill(0, 0, 100, random(40, 80));
+                    sphere(this.size * 0.5);
+                }
+                
                 pop();
             }
         }
@@ -1156,14 +1181,15 @@
             // 惑星の初期化
             const baseOrbitRadius = 80;
             const planetSizes = [4, 5, 3, 6, 4, 5, 3];
+            // 全ての惑星を白色に統一
             const planetColors = [
-                [200, 80, 100],  // 青白
-                [210, 85, 100],
-                [190, 75, 100],
-                [220, 90, 100],
-                [180, 70, 100],
-                [230, 95, 100],
-                [170, 65, 100]
+                [0, 0, 100],  // 白
+                [0, 0, 100],  // 白
+                [0, 0, 100],  // 白
+                [0, 0, 100],  // 白
+                [0, 0, 100],  // 白
+                [0, 0, 100],  // 白
+                [0, 0, 100]   // 白
             ];
 
             for (let i = 0; i < 7; i++) {
