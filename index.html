@@ -91,14 +91,36 @@
             background-color: rgba(40, 40, 40, 0.8);
             border-radius: 4px;
             height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
         }
         .control-group input[type="range"]::-webkit-slider-thumb {
-            background: rgba(255, 255, 255, 0.3);
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #ffffff;
             border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            cursor: pointer;
         }
         .control-group input[type="range"]::-moz-range-thumb {
-            background: rgba(255, 255, 255, 0.3);
+            width: 16px;
+            height: 16px;
+            background: #ffffff;
             border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .control-group input[type="range"]::-webkit-slider-runnable-track {
+            background: #808080;
+            height: 6px;
+            border-radius: 3px;
+        }
+        .control-group input[type="range"]::-moz-range-track {
+            background: #808080;
+            height: 6px;
+            border-radius: 3px;
         }
         .control-group output {
             font-size: 0.85em;
@@ -163,6 +185,32 @@
         }
         .synth-control-group h3 {
             color: #ffffff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 0;
+            padding: 0;
+        }
+        .synth-control-group h3::after {
+            content: '▼';
+            font-size: 0.8em;
+            transition: transform 0.3s ease;
+        }
+        .synth-control-group.collapsed h3::after {
+            transform: rotate(-90deg);
+        }
+        .synth-controls-content {
+            margin-top: 15px;
+            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+            max-height: 1000px;
+            opacity: 1;
+            overflow: hidden;
+        }
+        .synth-control-group.collapsed .synth-controls-content {
+            max-height: 0;
+            opacity: 0;
+            margin-top: 0;
         }
         .loop-indicator {
             margin: 15px 0;
@@ -309,8 +357,8 @@
 </head>
 <body>
     <div class="container">
-        <h1>Music for Airports 2/1 - Tone.js 再現</h1>
-        <p>ブライアン・イーノの「Music for Airports 2/1」の作曲技法に基づき、Tone.jsを使用してそのアンビエントな音響空間を再現します。「再生」ボタンを押して、生成される音楽をお楽しみください。</p>
+        <h1>Gen Music for Airports 2/1</h1>
+        <p>ブライアン・イーノの「Music for Airports 2/1」の作曲技法に基づき、Tone.jsを使用してそのアンビエントな音響空間を再現しています。仮想にHR（心拍数）とHRV（心拍変動）を入力すると、ループの長さが変化して、睡眠に最適されたリズムに変化します。</p>
         <div id="animationCanvas"></div>
         <button id="playButton">再生</button>
         <button id="stopButton" style="display:none;">停止</button>
@@ -352,10 +400,11 @@
         </div>
 
         <div class="info-box">
-            <p><strong>この再現について:</strong></p>
-            <p>- 7つの非同期ボーカル風ループを使用しています。</p>
-            <p>- 各ループの音程と長さは、論文の分析に基づいています。</p>
-            <p>- 音の揺らぎや空間処理も再現を試みています。</p>
+            <p><strong>この作品について:</strong></p>
+            <p>- Tone.jsを用いて7つの非同期ボーカル風ループを再生しています。</p>
+            <p>- 各ループの音程と長さは、music for airports 2/1 をベースにインタラクティブに変化します。</p>
+            <p>- テープレコーダーによる音の揺らぎや空間処理も再現を試みています。</p>
+            <p>- HR（心拍数）とHRV（心拍変動）を入力すると、ループの長さが変化して、睡眠に最適されたリズムに変化します。</p>
         </div>
     </div>
     <footer>
@@ -499,10 +548,10 @@
                 synthType: 'fatsine',
                 partials: [1, 0.5, 0.3, 0.1],
                 envelope: {
-                    attack: 3.5,
-                    decay: 1.5,
-                    sustain: 0.7,
-                    release: 12
+                    attack: 0.8,
+                    decay: 0.3,
+                    sustain: 0.06,
+                    release: 2.5
                 }
             },
             { 
@@ -514,10 +563,10 @@
                 synthType: 'fatsine',
                 partials: [1, 0.4, 0.2, 0.1],
                 envelope: {
-                    attack: 4,
-                    decay: 1.8,
-                    sustain: 0.75,
-                    release: 14
+                    attack: 0.9,
+                    decay: 0.4,
+                    sustain: 0.065,
+                    release: 2.8
                 }
             },
             { 
@@ -529,10 +578,10 @@
                 synthType: 'fatsine',
                 partials: [1, 0.6, 0.3, 0.15],
                 envelope: {
-                    attack: 3.8,
-                    decay: 2,
-                    sustain: 0.7,
-                    release: 15
+                    attack: 0.7,
+                    decay: 0.35,
+                    sustain: 0.058,
+                    release: 2.6
                 }
             },
             { 
@@ -544,10 +593,10 @@
                 synthType: 'fatsine',
                 partials: [1, 0.45, 0.25, 0.12],
                 envelope: {
-                    attack: 3.2,
-                    decay: 1.6,
-                    sustain: 0.72,
-                    release: 13
+                    attack: 0.85,
+                    decay: 0.38,
+                    sustain: 0.062,
+                    release: 2.7
                 }
             },
             { 
@@ -559,10 +608,10 @@
                 synthType: 'fatsine',
                 partials: [1, 0.55, 0.28, 0.13],
                 envelope: {
-                    attack: 3.6,
-                    decay: 1.7,
-                    sustain: 0.68,
-                    release: 11
+                    attack: 0.75,
+                    decay: 0.32,
+                    sustain: 0.059,
+                    release: 2.4
                 }
             },
             { 
@@ -574,10 +623,10 @@
                 synthType: 'fatsine',
                 partials: [1, 0.48, 0.22, 0.11],
                 envelope: {
-                    attack: 4.2,
-                    decay: 1.9,
-                    sustain: 0.73,
-                    release: 16
+                    attack: 0.95,
+                    decay: 0.42,
+                    sustain: 0.067,
+                    release: 2.9
                 }
             },
             { 
@@ -589,10 +638,10 @@
                 synthType: 'fatsine',
                 partials: [1, 0.52, 0.26, 0.14],
                 envelope: {
-                    attack: 4.5,
-                    decay: 2.1,
-                    sustain: 0.71,
-                    release: 17
+                    attack: 0.8,
+                    decay: 0.36,
+                    sustain: 0.061,
+                    release: 2.6
                 }
             }
         ].map(d => ({...d, currentLength: d.length}));
@@ -604,113 +653,57 @@
 
         // バイオフィードバック関数
         function applyBioFeedback(hr, hrv) {
-            const tempoScale = clamp(hr/60, 0.6, 1.5);           // HR 60bpm 基準
-            const relax = 1/(1+Math.exp(-(hrv-30)/15));          // 0〜1
+          /* ---------- 1) テンポスケールのみ計算 ---------- */
+          const tempoScale = clamp(hr / 60, 0.6, 1.5); // HR=60 を基準に倍速／半速
 
-            // バイオフィードバック値の表示を更新
-            document.getElementById('tempoScaleVal').textContent = tempoScale.toFixed(2);
-            document.getElementById('relaxVal').textContent = relax.toFixed(2);
+          // HRV は"ゆらぎ"パラメータとして swing/humanize だけに利用
+          const swing = clamp((hrv - 30) / 90, 0, 1); // 低HRV→ガッチリ、高HRV→ゆったり揺らぐ
 
-            loopData.forEach((d, i) => {
-                // ループ長の更新
-                const newLen = d.baseLength * tempoScale;
-                d.currentLength = newLen;
-                if (loops[i]) {
-                    // 現在のループを停止して新しいループを作成
-                    loops[i].stop();
-                    const newLoop = new Tone.Loop(time => {
-                        synths[i].triggerAttackRelease(d.note, newLen * 0.9, time);
-                    }, newLen);
-                    newLoop.humanize = "0.05s";
-                    newLoop.start();
-                    loops[i] = newLoop;
-                }
+          /* ---------- 2) 表示 ---------- */
+          document.getElementById('tempoScaleVal').textContent = tempoScale.toFixed(2);
+          document.getElementById('relaxVal').textContent = swing.toFixed(2);
 
-                // 音量の更新（HRVに基づく）
-                const targetVol = d.baseVolume + 6*(relax-1);
-                if (synths[i]) {
-                    synths[i].volume.rampTo(targetVol, 2);
-                    // 音量スライダーの値を更新
-                    const volumeSlider = document.getElementById(`volume${i}`);
-                    if (volumeSlider) {
-                        volumeSlider.value = targetVol;
-                        document.getElementById(`volumeValue${i}`).textContent = targetVol.toFixed(1);
-                    }
-                }
+          /* ---------- 3) ループ長だけ更新 ---------- */
+          loopData.forEach((d, i) => {
+             const newLen = d.baseLength * tempoScale;
+             console.log(`Synth ${i}: baseLength=${d.baseLength}, newLen=${newLen}, currentLength=${d.currentLength}`);
 
-                // LFOの更新（HRVに基づく）
-                if (pitchLFOs[i]) {
-                    // LFO周波数の更新（HRに基づく）
-                    const lfoFreq = clamp(0.01 + (hr/60) * 0.05, 0.01, 0.1);
-                    pitchLFOs[i].frequency.value = lfoFreq;
-                    const lfoFreqSlider = document.getElementById(`lfoFreq${i}`);
-                    if (lfoFreqSlider) {
-                        lfoFreqSlider.value = lfoFreq;
-                        document.getElementById(`lfoFreqValue${i}`).textContent = `${lfoFreq.toFixed(3)} Hz`;
-                    }
+             // 現在のループを停止
+             if (loops[i]) {
+                 console.log(`Stopping existing loop ${i}`);
+                 loops[i].stop();
+             }
 
-                    // LFO振幅の更新（HRVに基づく）
-                    const newAmplitude = 1 + 2*(1-relax);
-                    pitchLFOs[i].amplitude.value = newAmplitude;
-                    const lfoMaxSlider = document.getElementById(`lfoMax${i}`);
-                    if (lfoMaxSlider) {
-                        lfoMaxSlider.value = newAmplitude * 3;
-                        document.getElementById(`lfoMaxValue${i}`).textContent = (newAmplitude * 3).toFixed(1);
-                    }
-                }
+             // 新しいループを作成して開始
+             const l = new Tone.Loop(t => {
+                 synths[i].triggerAttackRelease(d.note, newLen * 0.9, t);
+             }, newLen);
+             
+             // humanize 値を HRV に応じた swing へ
+             l.humanize = `${(0.02 + 0.08 * swing).toFixed(3)}s`;
+             
+             // 現在のトランスポート時間から開始
+             const currentTime = Tone.Transport.seconds;
+             l.start(currentTime);
+             loops[i] = l;
+             d.currentLength = newLen;
+             
+             console.log(`New loop ${i} started with length ${newLen} at time ${currentTime}`);
 
-                // エンベロープの更新（HRVに基づく）
-                if (synths[i]) {
-                    // アタックタイムの更新
-                    const newAttack = clamp(d.envelope.attack * (1 + (1-relax)), 0.1, 10);
-                    synths[i].envelope.attack = newAttack;
-                    const attackSlider = document.getElementById(`attack${i}`);
-                    if (attackSlider) {
-                        attackSlider.value = newAttack;
-                        document.getElementById(`attackValue${i}`).textContent = newAttack.toFixed(1);
-                    }
+             // ループ時間表示の更新
+             const totalTimeDisplay = document.getElementById(`totalTime${i}`);
+             if (totalTimeDisplay) {
+                 totalTimeDisplay.textContent = `${newLen.toFixed(1)}s`;
+             }
 
-                    // リリースタイムの更新
-                    const newRelease = clamp(d.envelope.release * (1 + (1-relax)), 0.1, 20);
-                    synths[i].envelope.release = newRelease;
-                    const releaseSlider = document.getElementById(`release${i}`);
-                    if (releaseSlider) {
-                        releaseSlider.value = newRelease;
-                        document.getElementById(`releaseValue${i}`).textContent = newRelease.toFixed(1);
-                    }
-                }
-
-                // 倍音構成の更新（HRVに基づく）
-                if (synths[i]) {
-                    const newPartials = d.partials.map((p, j) => {
-                        const partialSlider = document.getElementById(`partial${i}_${j}`);
-                        if (partialSlider) {
-                            const newValue = clamp(p * (1 + (relax-0.5)), 0, 1);
-                            partialSlider.value = newValue;
-                            document.getElementById(`partialValue${i}_${j}`).textContent = newValue.toFixed(2);
-                            return newValue;
-                        }
-                        return p;
-                    });
-                    synths[i].oscillator.partials = newPartials;
-                }
-
-                // ループ時間表示の更新
-                const totalTimeDisplay = document.getElementById(`totalTime${i}`);
-                if (totalTimeDisplay) {
-                    totalTimeDisplay.textContent = `${newLen.toFixed(1)}s`;
-                }
-
-                // パラメータ変更の視覚的フィードバック
-                const synthGroup = document.querySelector(`.synth-control-group:nth-child(${i + 1})`);
-                if (synthGroup) {
-                    const labels = synthGroup.querySelectorAll('label');
-                    labels.forEach(label => {
-                        label.classList.add('parameter-change', 'active');
-                        setTimeout(() => label.classList.remove('active'), 1000);
-                    });
-                }
-            });
+             // ループ長スライダーの値を更新
+             const lengthSlider = document.getElementById(`length${i}`);
+             const lengthValue = document.getElementById(`lengthValue${i}`);
+             if (lengthSlider && lengthValue) {
+                 lengthSlider.value = newLen;
+                 lengthValue.textContent = `${newLen.toFixed(1)}s`;
+             }
+          });
         }
 
         // 生体データスライダーのイベントリスナー
@@ -793,10 +786,10 @@
                 // アナログの揺らぎをエミュレート (論文 III.C.5, III.D.4)
                 // LFOでピッチを微細に変調 (ワウフラッター風)
                 const pitchLFO = new Tone.LFO({
-                    frequency: 0.02,
-                    min: -3,
-                    max: 3,
-                    amplitude: 1
+                    frequency: 0.01,  // より遅い周波数
+                    min: -1,         // より小さい変調範囲
+                    max: 1,          // より小さい変調範囲
+                    amplitude: 0.5   // より小さい振幅
                 }).start();
                 pitchLFO.connect(synth.detune);
                 pitchLFOs.push(pitchLFO); // LFOインスタンスを配列に保存
@@ -910,10 +903,9 @@
             
             loopData.forEach((data, index) => {
                 const synthGroup = document.createElement('div');
-                synthGroup.className = 'synth-control-group';
+                synthGroup.className = 'synth-control-group collapsed';
                 synthGroup.innerHTML = `
                     <h3>シンセ ${index + 1} (${data.note})</h3>
-                    
                     <div class="loop-indicator">
                         <div class="loop-progress" id="progressContainer${index}">
                             <div class="loop-progress-bar" id="progress${index}"></div>
@@ -922,6 +914,14 @@
                             <span id="currentTime${index}">0.0s</span>
                             <span id="totalTime${index}">${data.length.toFixed(1)}s</span>
                         </div>
+                    </div>
+                    <div class="synth-controls-content">
+                        <div class="parameter-group">
+                            <label for="volume${index}">音量:</label>
+                            <input type="range" id="volume${index}" min="-100" max="0" step="0.1" value="${data.volume}">
+                            <output for="volume${index}" id="volumeValue${index}">${data.volume}</output>
+                        </div>
+
                         <div class="loop-length-control">
                             <label for="length${index}">ループ長:</label>
                             <input type="range" id="length${index}" 
@@ -929,73 +929,73 @@
                                 value="${data.length}">
                             <output for="length${index}" id="lengthValue${index}">${data.length.toFixed(1)}s</output>
                         </div>
-                    </div>
 
-                    <div class="parameter-group">
-                        <label for="volume${index}">音量:</label>
-                        <input type="range" id="volume${index}" min="-40" max="0" step="0.1" value="${data.volume}">
-                        <output for="volume${index}" id="volumeValue${index}">${data.volume}</output>
-                    </div>
+                        <div class="parameter-group">
+                            <label>倍音構成:</label>
+                            <div class="partials-group">
+                                ${[0, 1, 2, 3].map(i => `
+                                    <div>
+                                        <label for="partial${index}_${i}">倍音 ${i + 1}:</label>
+                                        <input type="range" id="partial${index}_${i}" min="0" max="1" step="0.01" value="${data.partials[i]}">
+                                        <output for="partial${index}_${i}" id="partialValue${index}_${i}">${data.partials[i]}</output>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
 
-                    <div class="parameter-group">
-                        <label>倍音構成:</label>
-                        <div class="partials-group">
-                            ${[0, 1, 2, 3].map(i => `
-                                <div>
-                                    <label for="partial${index}_${i}">倍音 ${i + 1}:</label>
-                                    <input type="range" id="partial${index}_${i}" min="0" max="1" step="0.01" value="${data.partials[i]}">
-                                    <output for="partial${index}_${i}" id="partialValue${index}_${i}">${data.partials[i]}</output>
-                                </div>
-                            `).join('')}
+                        <div class="parameter-group">
+                            <label>エンベロープ:</label>
+                            <div>
+                                <label for="attack${index}">アタック:</label>
+                                <input type="range" id="attack${index}" min="0.1" max="2" step="0.05" value="${data.envelope.attack}">
+                                <output for="attack${index}" id="attackValue${index}">${data.envelope.attack}</output>
+                            </div>
+                            <div>
+                                <label for="decay${index}">ディケイ:</label>
+                                <input type="range" id="decay${index}" min="0.1" max="1" step="0.05" value="${data.envelope.decay}">
+                                <output for="decay${index}" id="decayValue${index}">${data.envelope.decay}</output>
+                            </div>
+                            <div>
+                                <label for="sustain${index}">サステイン:</label>
+                                <input type="range" id="sustain${index}" min="0" max="1" step="0.01" value="${data.envelope.sustain}">
+                                <output for="sustain${index}" id="sustainValue${index}">${data.envelope.sustain}</output>
+                            </div>
+                            <div>
+                                <label for="release${index}">リリース:</label>
+                                <input type="range" id="release${index}" min="0.1" max="5" step="0.1" value="${data.envelope.release}">
+                                <output for="release${index}" id="releaseValue${index}">${data.envelope.release}</output>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="parameter-group">
-                        <label>エンベロープ:</label>
-                        <div>
-                            <label for="attack${index}">アタック:</label>
-                            <input type="range" id="attack${index}" min="0.1" max="10" step="0.1" value="${data.envelope.attack}">
-                            <output for="attack${index}" id="attackValue${index}">${data.envelope.attack}</output>
-                        </div>
-                        <div>
-                            <label for="decay${index}">ディケイ:</label>
-                            <input type="range" id="decay${index}" min="0.1" max="5" step="0.1" value="${data.envelope.decay}">
-                            <output for="decay${index}" id="decayValue${index}">${data.envelope.decay}</output>
-                        </div>
-                        <div>
-                            <label for="sustain${index}">サステイン:</label>
-                            <input type="range" id="sustain${index}" min="0" max="1" step="0.01" value="${data.envelope.sustain}">
-                            <output for="sustain${index}" id="sustainValue${index}">${data.envelope.sustain}</output>
-                        </div>
-                        <div>
-                            <label for="release${index}">リリース:</label>
-                            <input type="range" id="release${index}" min="0.1" max="20" step="0.1" value="${data.envelope.release}">
-                            <output for="release${index}" id="releaseValue${index}">${data.envelope.release}</output>
-                        </div>
-                    </div>
-
-                    <div class="lfo-controls">
-                        <h4>LFO設定</h4>
-                        <div class="lfo-parameter">
-                            <label for="lfoFreq${index}">周波数:</label>
-                            <input type="range" id="lfoFreq${index}" min="0.01" max="0.1" step="0.001" value="0.02">
-                            <output for="lfoFreq${index}" id="lfoFreqValue${index}">0.02 Hz</output>
-                        </div>
-                        <div class="lfo-parameter">
-                            <label for="lfoMin${index}">最小値:</label>
-                            <input type="range" id="lfoMin${index}" min="-10" max="0" step="0.1" value="-3">
-                            <output for="lfoMin${index}" id="lfoMinValue${index}">-3</output>
-                        </div>
-                        <div class="lfo-parameter">
-                            <label for="lfoMax${index}">最大値:</label>
-                            <input type="range" id="lfoMax${index}" min="0" max="10" step="0.1" value="3">
-                            <output for="lfoMax${index}" id="lfoMaxValue${index}">3</output>
+                        <div class="lfo-controls">
+                            <h4>LFO設定</h4>
+                            <div class="lfo-parameter">
+                                <label for="lfoFreq${index}">周波数:</label>
+                                <input type="range" id="lfoFreq${index}" min="0.005" max="0.05" step="0.001" value="0.01">
+                                <output for="lfoFreq${index}" id="lfoFreqValue${index}">0.01 Hz</output>
+                            </div>
+                            <div class="lfo-parameter">
+                                <label for="lfoMin${index}">最小値:</label>
+                                <input type="range" id="lfoMin${index}" min="-2" max="0" step="0.1" value="-1">
+                                <output for="lfoMin${index}" id="lfoMinValue${index}">-1</output>
+                            </div>
+                            <div class="lfo-parameter">
+                                <label for="lfoMax${index}">最大値:</label>
+                                <input type="range" id="lfoMax${index}" min="0" max="2" step="0.1" value="1">
+                                <output for="lfoMax${index}" id="lfoMaxValue${index}">1</output>
+                            </div>
                         </div>
                     </div>
                 `;
                 controlsContainer.appendChild(synthGroup);
 
-                // イベントリスナーの設定
+                // 折りたたみ機能の追加
+                const header = synthGroup.querySelector('h3');
+                header.addEventListener('click', () => {
+                    synthGroup.classList.toggle('collapsed');
+                });
+
+                // 既存のイベントリスナーの設定
                 const volumeSlider = document.getElementById(`volume${index}`);
                 const partialSliders = [0, 1, 2, 3].map(i => document.getElementById(`partial${index}_${i}`));
                 const attackSlider = document.getElementById(`attack${index}`);
